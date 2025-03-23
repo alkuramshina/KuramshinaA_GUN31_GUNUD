@@ -1,35 +1,59 @@
-using System;
+using System.Collections;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class WayFinder : MonoBehaviour
 {
     [SerializeField] private Rigidbody selfRigidbody;
     [SerializeField] private float seeingDistance;
     [SerializeField] private float speed;
+    [SerializeField, Range(-1, 1)] private float rotationAngle;
+
+    private bool _isRotating;
     
-    private readonly RaycastHit[] _result = new RaycastHit[1];
-
-    private void RotateRandomly()
-    {
-        selfRigidbody.MoveRotation(Random.rotation);
-    }
-
     private void FixedUpdate()
     {
-        var collisions = selfRigidbody.SweepTestAll(transform.forward, seeingDistance);
-        
         Debug.DrawRay(transform.position, transform.forward * 100, Color.blue);
         
-        
-        if (collisions.Length == 0)
+        if (_isRotating)
+            return;
+
+        if (IsAnyObstacleInDistance())
         {
-            selfRigidbody.velocity = transform.forward * speed;
+            _isRotating = true;
+            
+            StartCoroutine(RandomRotation());
         }
         else
         {
-            RotateRandomly();
-            Debug.Log(Vector3.Distance(transform.position, collisions[0].collider.ClosestPoint(transform.position)));
+            StartCoroutine(MovingForward());
         }
+    }
+    
+    private IEnumerator MovingForward()
+    {
+        while (!IsAnyObstacleInDistance())
+        {
+            selfRigidbody.velocity = transform.forward * speed;
+            yield return null;
+        }
+        
+        yield return null;
+    }
+    
+    private IEnumerator RandomRotation()
+    {
+        while (IsAnyObstacleInDistance())
+        {
+            transform.Rotate(new Vector3(0, rotationAngle, 0));
+            yield return null;
+        }
+        
+        _isRotating = false;
+        yield return null;
+    }
+
+    private bool IsAnyObstacleInDistance()
+    {
+        return selfRigidbody.SweepTestAll(transform.forward, seeingDistance).Length > 0;
     }
 }
