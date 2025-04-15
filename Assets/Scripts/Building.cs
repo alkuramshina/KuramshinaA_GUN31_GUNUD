@@ -4,6 +4,14 @@ using UnityEngine;
 public class Building : MonoBehaviour
 {
     [SerializeField] private Vector2Int size = Vector2Int.one;
+    public Vector2Int Size => size;
+
+    private Renderer _renderer;
+
+    private void Awake()
+    {
+        _renderer = GetComponentInChildren<Renderer>();
+    }
 
     private void OnDrawGizmos()
     {
@@ -18,5 +26,15 @@ public class Building : MonoBehaviour
                 Gizmos.DrawCube(transform.position + new Vector3(x, 0, y), new Vector3(1, .1f, 1));
             }
         }
+    }
+
+    public void RenderAvailability(bool isAvailable)
+    {
+        _renderer.material.color = isAvailable ? Color.green : Color.red;
+    }
+
+    public void RenderNormal()
+    {
+        _renderer.material.color = Color.white;
     }
 }
